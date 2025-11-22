@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Menú Cine Iplacex</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 20px auto;
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+    .tabs button {
+      padding: 8px 16px;
+      border: 1px solid #333;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .tabs button.active {
+      background: #333;
+      color: #fff;
+    }
+    .panel {
+      display: none;
+      background: #fff;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+    .panel.active {
+      display: block;
+    }
+    form {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button[type="submit"] {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+      justify-self: flex-start;
+    }
+    .list-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .list-buttons button {
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #fff;
+      cursor: pointer;
+    }
+    pre {
+      background: #222;
+      color: #0f0;
+      padding: 10px;
+      border-radius: 6px;
+      max-height: 300px;
+      overflow: auto;
+      font-size: 12px;
+    }
+    .hint {
+      font-size: 12px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cine Iplacex</h1>
+  <h2>Menú para Películas y Actores</h2>
+
+  <div class="tabs">
+    <button id="tab-pelicula" class="active">Películas</button>
+    <button id="tab-actor">Actores</button>
+  </div>
+
+  <!-- Panel Película -->
+  <div id="panel-pelicula" class="panel active">
+    <h3>Ingresar nueva película</h3>
+    <form id="pelicula-form">
+      <div>
+        <label for="pelicula-nombre">Nombre de la película</label>
+        <input type="text" id="pelicula-nombre" required />
+      </div>
+      <div>
+        <label for="pelicula-generos">Géneros</label>
+        <input type="text" id="pelicula-generos" placeholder="Ej: Acción, Ciencia ficción" />
+        <div class="hint">Puedes escribir varios géneros separados por coma.</div>
+      </div>
+      <div>
+        <label for="pelicula-anio">Año de estreno</label>
+        <input type="number" id="pelicula-anio" required />
+      </div>
+      <button type="submit">Guardar película</button>
+    </form>
+
+    <div class="list-buttons">
+      <button id="btn-listar-peliculas">Ver todas las películas</button>
+    </div>
+  </div>
+
+  <!-- Panel Actor -->
+  <div id="panel-actor" class="panel">
+    <h3>Ingresar nuevo actor</h3>
+    <form id="actor-form">
+      <div>
+        <label for="actor-nombre">Nombre del actor</label>
+        <input type="text" id="actor-nombre" required />
+      </div>
+      <div>
+        <label for="actor-edad">Edad</label>
+        <input type="number" id="actor-edad" required />
+      </div>
+      <div>
+        <label for="actor-retirado">¿Está retirado?</label>
+        <select id="actor-retirado">
+          <option value="false">No</option>
+          <option value="true">Sí</option>
+        </select>
+      </div>
+      <div>
+        <label for="actor-premios">Premios</label>
+        <input type="text" id="actor-premios" placeholder="Ej: Oscar, Globo de Oro" />
+        <div class="hint">Escribe varios premios separados por coma.</div>
+      </div>
+      <div>
+        <label for="actor-pelicula-nombre">Nombre de la película asociada</label>
+        <input type="text" id="actor-pelicula-nombre" placeholder="Debe existir en la colección" required />
+        <div class="hint">La API buscará la película por su nombre exactamente.</div>
+      </div>
+      <button type="submit">Guardar actor</button>
+    </form>
+
+    <div class="list-buttons">
+      <button id="btn-listar-actores">Ver todos los actores</button>
+    </div>
+  </div>
+
+  <h3>Respuesta de la API</h3>
+  <pre id="output">{}</pre>
+
+  <script>
+    const apiBase = '/api'; // mismo servidor, mismo puerto
+
+    const tabPelicula = document.getElementById('tab-pelicula');
+    const tabActor = document.getElementById('tab-actor');
+    const panelPelicula = document.getElementById('panel-pelicula');
+    const panelActor = document.getElementById('panel-actor');
+    const output = document.getElementById('output');
+
+    function setActiveTab(tab) {
+      if (tab === 'pelicula') {
+        tabPelicula.classList.add('active');
+        tabActor.classList.remove('active');
+        panelPelicula.classList.add('active');
+        panelActor.classList.remove('active');
+      } else {
+        tabActor.classList.add('active');
+        tabPelicula.classList.remove('active');
+        panelActor.classList.add('active');
+        panelPelicula.classList.remove('active');
+      }
+      output.textContent = '{}';
+    }
+
+    tabPelicula.addEventListener('click', () => setActiveTab('pelicula'));
+    tabActor.addEventListener('click', () => setActiveTab('actor'));
+
+    const peliculaForm = document.getElementById('pelicula-form');
+    const actorForm = document.getElementById('actor-form');
+    const btnListarPeliculas = document.getElementById('btn-listar-peliculas');
+    const btnListarActores = document.getElementById('btn-listar-actores');
+
+    peliculaForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const nombre = document.getElementById('pelicula-nombre').value.trim();
+      const generosTexto = document.getElementById('pelicula-generos').value.trim();
+      const anio = document.getElementById('pelicula-anio').value;
+
+      const body = {
+        nombre: nombre,
+        generos: generosTexto, // el backend aceptará string y lo separará por coma
+        anioEstreno: Number(anio)
+      };
+
+      try {
+        const res = await fetch(apiBase + '/pelicula', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        output.textContent = JSON.stringify({ status: res.status, data }, null, 2);
+
+        if (res.ok) {
+          peliculaForm.reset();
+        }
+      } catch (error) {
+        output.textContent = 'Error al conectar con la API: ' + error.message;
+      }
+    });
+
+    actorForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const nombre = document.getElementById('actor-nombre').value.trim();
+      const edad = document.getElementById('actor-edad').value;
+      const retirado = document.getElementById('actor-retirado').value;
+      const premiosTexto = document.getElementById('actor-premios').value.trim();
+      const nombrePelicula = document.getElementById('actor-pelicula-nombre').value.trim();
+
+      const body = {
+        nombre: nombre,
+        edad: Number(edad),
+        estaRetirado: retirado,
+        premios: premiosTexto,
+        nombrePelicula: nombrePelicula
+      };
+
+      try {
+        const res = await fetch(apiBase + '/actor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        output.textContent = JSON.stringify({ status: res.status, data }, null, 2);
+
+        if (res.ok) {
+          actorForm.reset();
+        }
+      } catch (error) {
+        output.textContent = 'Error al conectar con la API: ' + error.message;
+      }
+    });
+
+    btnListarPeliculas.addEventListener('click', async () => {
+      try {
+        const res = await fetch(apiBase + '/pelicula');
+        const data = await res.json();
+        output.textContent = JSON.stringify({ status: res.status, data }, null, 2);
+      } catch (error) {
+        output.textContent = 'Error al obtener películas: ' + error.message;
+      }
+    });
+
+    btnListarActores.addEventListener('click', async () => {
+      try {
+        const res = await fetch(apiBase + '/actor');
+        const data = await res.json();
+        output.textContent = JSON.stringify({ status: res.status, data }, null, 2);
+      } catch (error) {
+        output.textContent = 'Error al obtener actores: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
